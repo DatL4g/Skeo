@@ -3,13 +3,14 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
     kotlin("multiplatform") version "1.9.21"
+    kotlin("plugin.serialization") version "1.9.21"
     id("com.vanniktech.maven.publish") version "0.25.3"
     `maven-publish`
     signing
 }
 
 val libName = "skeo"
-val libVersion = "0.1.0"
+val libVersion = "0.1.1"
 val artifact = "dev.datlag.skeo"
 group = artifact
 version = libVersion
@@ -45,6 +46,7 @@ kotlin {
                 implementation("org.drewcarlson:ktsoup-ktor:0.3.0")
                 implementation("dev.datlag.jsunpacker:jsunpacker:1.0.2")
                 implementation("io.ktor:ktor-client-core:2.3.6")
+                implementation("org.jetbrains.kotlinx:kotlinx-serialization-core:1.6.2")
             }
         }
     }
