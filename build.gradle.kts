@@ -10,7 +10,7 @@ plugins {
 }
 
 val libName = "skeo"
-val libVersion = "0.1.1"
+val libVersion = "0.2.0"
 val artifact = "dev.datlag.skeo"
 group = artifact
 version = libVersion
@@ -24,30 +24,35 @@ repositories {
 kotlin {
     jvm()
     js(IR) {
-        browser()
         nodejs()
         binaries.executable()
     }
     linuxX64()
+    linuxArm64()
+
     mingwX64()
-    macosArm64()
+
     macosX64()
-    iosSimulatorArm64()
-    iosArm64()
+    macosArm64()
+
     iosX64()
+    iosArm64()
+    iosSimulatorArm64()
+
+    tvosX64()
+    tvosArm64()
+    tvosSimulatorArm64()
 
     jvmToolchain(JavaVersion.VERSION_17.majorVersion.toIntOrNull() ?: (JavaVersion.VERSION_17.ordinal + 1))
     applyDefaultHierarchyTemplate()
 
     sourceSets {
-        val commonMain by getting {
-            dependencies {
-                implementation("org.drewcarlson:ktsoup-core:0.3.0")
-                implementation("org.drewcarlson:ktsoup-ktor:0.3.0")
-                implementation("dev.datlag.jsunpacker:jsunpacker:1.0.2")
-                implementation("io.ktor:ktor-client-core:2.3.6")
-                implementation("org.jetbrains.kotlinx:kotlinx-serialization-core:1.6.2")
-            }
+        commonMain.dependencies {
+            implementation("com.fleeksoft.ksoup:ksoup:0.1.2")
+            implementation("dev.datlag.jsunpacker:jsunpacker:1.0.2")
+            implementation("io.ktor:ktor-client-core:2.3.12")
+            implementation("org.jetbrains.kotlinx:kotlinx-serialization-core:1.7.1")
+            implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.6.0")
         }
     }
 }

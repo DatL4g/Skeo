@@ -1,26 +1,21 @@
 package dev.datlag.skeo.hoster
 
+import com.fleeksoft.ksoup.nodes.Document
 import dev.datlag.jsunpacker.JsUnpacker
-import dev.datlag.skeo.Skeo
-import ktsoup.KtSoupDocument
+import dev.datlag.skeo.DirectLink
+import dev.datlag.skeo.Hoster
+import kotlinx.serialization.Serializable
 
-internal object MixDrop : Manipulation {
-    override fun match(url: String): Boolean {
-        return "(?://|\\.)(mixdro?p\\.(?:c[ho]|to|sx|bz|gl|club))/(?:f|e)/(\\w+)".toRegex().containsMatchIn(url)
-    }
+@Serializable
+data class MixDrop(
+    override val url: String
+) : Hoster {
 
-    override fun changeUrl(url: String): String {
-        return if (url.contains("/f/")) {
-            url.replace("/f/", "/e/")
-        } else {
-            url
-        }
-    }
-
-    override fun change(initialList: Collection<String>, document: KtSoupDocument): Collection<String> {
-        val mixDropResult = JsUnpacker.unpack(document.querySelectorAll("script").map { it.html() }).flatMap {
-            "wurl=\\s*\"(.*?)\"".toRegex().findAll(it).toList().mapNotNull { result ->
+    override suspend fun directLink(document: Document): Collection<DirectLink> {
+        return JsUnpacker.unpack(document.getElementsByTag("script").map { it.html() }).flatMap {
+            LINK_MATCHER.findAll(it).mapNotNull { result ->
                 val url = result.groups[1]?.value?.trim()?.ifBlank { null }
+
                 return@mapNotNull if (url == null) {
                     null
                 } else {
@@ -31,16 +26,23 @@ internal object MixDrop : Manipulation {
                     }
                 }
             }
-        }
-        return listOf(
-            *initialList.toTypedArray(),
-            *mixDropResult.toTypedArray()
-        )
+        }.toSet().map(::DirectLink)
     }
 
-    override fun headers(url: String): Map<String, String> {
-        return mapOf(
-            "Referer" to Skeo.baseUrl(url)
-        )
+    companion object : Hoster.UrlMatcher, Hoster.UrlUpdater {
+        private val URL_MATCHER = "(?://|\\.)(mixdro?p\\.(?:c[ho]|to|sx|bz|gl|club))/(?:f|e)/(\\w+)".toRegex()
+        private val LINK_MATCHER = "wurl=\\s*['\"](.*?)['\"]".toRegex()
+
+        override fun matches(url: String): Boolean {
+            return URL_MATCHER.containsMatchIn(url)
+        }
+
+        override fun updateUrl(url: String): String {
+            return if (url.contains("/f/")) {
+                url.replace("/f/", "/e/")
+            } else {
+                url
+            }
+        }
     }
 }

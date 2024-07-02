@@ -1,19 +1,18 @@
 package dev.datlag.skeo
 
-import ktsoup.KtSoupElement
+import com.fleeksoft.ksoup.nodes.Element
 
-internal fun KtSoupElement.getSrc(): String? {
-    return this.attr("src")?.ifBlank { null } ?: run {
-        val sources = this.querySelectorAll("source")
-        sources.firstOrNull()?.getSrc()
-    }
+internal fun Element.getSrc(): String? {
+    return this.attr("src").ifBlank { null }
 }
 
-internal fun KtSoupElement.getSources(): Set<String> {
+internal fun Element.getSources(): Collection<String> {
+    val backupSources = scopeCatching {
+        this.getElementsByTag("source").map { it.getSources() }.flatten()
+    }.getOrNull().orEmpty().toTypedArray()
+
     return setOfNotNull(
-        this.attr("src")?.ifBlank { null },
-        *(scopeCatching {
-            this.querySelectorAll("source").map { it.getSources() }.flatten().toTypedArray()
-        }.getOrNull() ?: emptyArray())
+        this.attr("src").ifBlank { null },
+        *backupSources
     )
 }
