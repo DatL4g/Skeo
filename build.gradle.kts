@@ -52,7 +52,7 @@ kotlin {
             implementation("dev.datlag.jsunpacker:jsunpacker:1.0.2")
             implementation("io.ktor:ktor-client-core:2.3.12")
             implementation("org.jetbrains.kotlinx:kotlinx-serialization-core:1.7.1")
-            implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.6.0")
+            implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.5.0")
         }
     }
 }
