@@ -2,9 +2,9 @@ import com.vanniktech.maven.publish.SonatypeHost
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
-    kotlin("multiplatform") version "1.9.21"
-    kotlin("plugin.serialization") version "1.9.21"
-    id("com.vanniktech.maven.publish") version "0.25.3"
+    kotlin("multiplatform") version "2.0.0"
+    kotlin("plugin.serialization") version "2.0.0"
+    id("com.vanniktech.maven.publish") version "0.29.0"
     `maven-publish`
     signing
 }
