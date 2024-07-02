@@ -7,9 +7,11 @@ import dev.datlag.skeo.Hoster
 import io.ktor.client.HttpClient
 import io.ktor.client.request.get
 import io.ktor.client.request.headers
+import io.ktor.client.statement.HttpResponse
 import io.ktor.client.statement.bodyAsText
 import io.ktor.client.statement.request
 import io.ktor.http.URLBuilder
+import io.ktor.http.isSuccess
 import io.ktor.http.set
 import kotlinx.datetime.Clock
 import kotlinx.serialization.Serializable
@@ -41,20 +43,36 @@ data class DoodStream(
             }.getOrNull()
         }.toSet()
 
-        return match.map { (updatedUrl, token) ->
-            val response = client.get(updatedUrl) {
+        return match.mapNotNull { (updatedUrl, token) ->
+            val (referer, data) = client.get(updatedUrl).getResponseUrl() ?: client.get(updatedUrl) {
                 headers {
                     append("Referer", docUrl)
                 }
-            }
-            val referer = URLBuilder(response.request.url)
-            referer.set(path = "/")
+            }.getResponseUrl() ?: client.get(updatedUrl) {
+                headers {
+                    append("Referer", this@DoodStream.url)
+                }
+            }.getResponseUrl() ?: return@mapNotNull null
+
 
             DirectLink(
-                url = "${response.bodyAsText().trim()}${randomString()}?token=$token&expiry=$expiry",
-                headers = mapOf("Referer" to referer.buildString())
+                url = "${data}${randomString()}?token=$token&expiry=$expiry",
+                headers = mapOf("Referer" to referer)
             )
         }.toSet()
+    }
+
+    private suspend fun HttpResponse.getResponseUrl(): Pair<String, String>? {
+        return if (this.status.isSuccess()) {
+            val data = this.bodyAsText().trim()
+            if (data.startsWith("https://")) {
+                this.request.url.toString() to data
+            } else {
+                null
+            }
+        } else {
+            null
+        }
     }
 
     companion object : Hoster.UrlMatcher, Hoster.UrlUpdater {
