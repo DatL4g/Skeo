@@ -2,7 +2,6 @@ package dev.datlag.skeo
 
 import com.fleeksoft.ksoup.Ksoup
 import com.fleeksoft.ksoup.nodes.Document
-import dev.datlag.jsunpacker.JsUnpacker
 import dev.datlag.skeo.hoster.DoodStream
 import dev.datlag.skeo.hoster.MixDrop
 import dev.datlag.skeo.hoster.Streamtape
@@ -92,7 +91,7 @@ data object Skeo {
             it.value
         }.toSet()
 
-        val jsResult = JsUnpacker.unpack(document.getElementsByTag("script").map { it.html() }).flatMap {
+        val jsResult = document.dataNodes().flatMap { setOf(it.getUnpackedData(), it.getWholeData()) }.flatMap {
             val jsRegexResult = cleanRegex.findAll(it).map { result -> result.value }.toSet()
             val jsQueryRegexResult = queryRegex.findAll(it).map { result -> result.value }.toSet()
 

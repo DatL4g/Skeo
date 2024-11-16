@@ -1,7 +1,6 @@
 package dev.datlag.skeo.hoster
 
 import com.fleeksoft.ksoup.nodes.Document
-import dev.datlag.jsunpacker.JsUnpacker
 import dev.datlag.skeo.DirectLink
 import dev.datlag.skeo.Hoster
 import kotlinx.serialization.Serializable
@@ -12,7 +11,7 @@ data class MixDrop(
 ) : Hoster {
 
     override suspend fun directLink(document: Document): Collection<DirectLink> {
-        return JsUnpacker.unpack(document.getElementsByTag("script").map { it.html() }).flatMap {
+        return document.dataNodes().flatMap { setOf(it.getUnpackedData(), it.getWholeData()) }.flatMap {
             LINK_MATCHER.findAll(it).mapNotNull { result ->
                 val url = result.groups[1]?.value?.trim()?.ifBlank { null }
 

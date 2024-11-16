@@ -1,16 +1,17 @@
 import com.vanniktech.maven.publish.SonatypeHost
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
-    kotlin("multiplatform") version "2.0.0"
-    kotlin("plugin.serialization") version "2.0.0"
+    kotlin("multiplatform") version "2.0.21"
+    kotlin("plugin.serialization") version "2.0.21"
     id("com.vanniktech.maven.publish") version "0.29.0"
     `maven-publish`
     signing
 }
 
 val libName = "skeo"
-val libVersion = "0.2.1"
+val libVersion = "0.2.2"
 val artifact = "dev.datlag.skeo"
 group = artifact
 version = libVersion
@@ -48,17 +49,12 @@ kotlin {
 
     sourceSets {
         commonMain.dependencies {
-            implementation("com.fleeksoft.ksoup:ksoup:0.1.2")
-            implementation("dev.datlag.jsunpacker:jsunpacker:1.0.2")
-            implementation("io.ktor:ktor-client-core:2.3.12")
-            implementation("org.jetbrains.kotlinx:kotlinx-serialization-core:1.7.1")
-            implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.5.0")
+            implementation("com.fleeksoft.ksoup:ksoup:0.2.0")
+            implementation("io.ktor:ktor-client-core:3.0.1")
+            implementation("org.jetbrains.kotlinx:kotlinx-serialization-core:1.7.3")
+            implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.6.1")
         }
     }
-}
-
-tasks.withType<KotlinCompile>().configureEach {
-    kotlinOptions.jvmTarget = JavaVersion.VERSION_17.toString()
 }
 
 mavenPublishing {
