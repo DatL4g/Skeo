@@ -50,15 +50,17 @@ data class Voe(
                 } else {
                     uri.toString().ifBlank { null }
                 }
-            }
+            } ?: scopeCatching {
+                Base64.Default.decode(match).decodeToString()
+            }.getOrNull()
         }
     }
 
     companion object : Hoster.UrlMatcher, Hoster.UrlUpdater {
         private val URL_MATCHER = "(?://|\\.)(voe\\.sx)/(\\w+)".toRegex(RegexOption.IGNORE_CASE)
         private val LOCATION_MATCHER = "window.location.href\\s*=\\s*['\"](https.*)['\"]".toRegex(RegexOption.IGNORE_CASE)
-        private val HLS_MATCHER = "['\"]hls['\"]: ['\"](.*)['\"]".toRegex(setOf(RegexOption.IGNORE_CASE, RegexOption.MULTILINE))
-        private val MP4_MATCHER = "['\"]mp4['\"]: ['\"](.*)['\"]".toRegex(setOf(RegexOption.IGNORE_CASE, RegexOption.MULTILINE))
+        private val HLS_MATCHER = "['\"]hls['\"]:\\s*['\"](.*)['\"]".toRegex(setOf(RegexOption.IGNORE_CASE, RegexOption.MULTILINE))
+        private val MP4_MATCHER = "['\"]mp4['\"]:\\s*['\"](.*)['\"]".toRegex(setOf(RegexOption.IGNORE_CASE, RegexOption.MULTILINE))
 
         override fun matches(url: String): Boolean {
             return URL_MATCHER.containsMatchIn(url)
