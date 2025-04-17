@@ -7,8 +7,7 @@ import dev.datlag.skeo.hoster.MixDrop
 import dev.datlag.skeo.hoster.Streamtape
 import dev.datlag.skeo.hoster.Voe
 import io.ktor.client.HttpClient
-import io.ktor.http.ParametersBuilder
-import io.ktor.http.URLBuilder
+import io.ktor.http.*
 
 data object Skeo {
 
@@ -25,57 +24,69 @@ data object Skeo {
         url: String,
         resolveIFrames: Boolean = true
     ): Collection<DirectLink> {
-        val updatedUrl = when {
-            Streamtape.matches(url) -> Streamtape.updateUrl(url)
-            Voe.matches(url) -> Voe.updateUrl(client, url)
-            MixDrop.matches(url) -> MixDrop.updateUrl(url)
-            DoodStream.matches(url) -> DoodStream.updateUrl(url)
-            else -> url
+        val (updatedUrl, isVoe) = when {
+            Streamtape.matches(url) -> Streamtape.updateUrl(url) to false
+            Voe.matches(url) -> Voe.updateUrl(client, url) to true
+            MixDrop.matches(url) -> MixDrop.updateUrl(url) to false
+            DoodStream.matches(url) -> DoodStream.updateUrl(url) to false
+            else -> url to false
         }
 
-        val document = suspendCatching {
-            Ksoup.parseGet(updatedUrl, client)
-        }.getOrNull() ?: if (updatedUrl != url) {
+        val allDocs = listOfNotNull(
+            suspendCatching {
+                Ksoup.parseGet(updatedUrl, client)
+            }.getOrNull(),
             suspendCatching {
                 Ksoup.parseGet(url, client)
-            }.getOrNull()
-        } else {
-            null
-        } ?: return emptyList()
-
-        val hosterSpecific = when {
-            Streamtape.matches(url) -> Streamtape(updatedUrl).directLink(document)
-            Voe.matches(url) -> Voe(updatedUrl).directLink(document)
-            MixDrop.matches(url) -> MixDrop(updatedUrl).directLink(document)
-            DoodStream.matches(url) -> DoodStream(updatedUrl).directLink(client, document)
-            else -> emptySet()
-        }
-        val documentLinks = directLinksInDoc(document)
-        val iFrameLinks = if (resolveIFrames) {
-            val docUrl = document.location()?.ifBlank { null } ?: updatedUrl
-
-            val iFrameSources = document.getElementsByTag("iframe").flatMap {
-                it.getSources()
-            }.toSet().map {
-                normalizeIframeUrl(docUrl, it)
-            }.toSet()
-
-            iFrameSources.flatMap {
-                loadVideos(
-                    client = client,
-                    url = it,
-                    resolveIFrames = false
-                )
+            }.getOrNull(),
+            if (isVoe || Voe.matches(url)) {
+                val downloadLink = Voe.updateUrl(client, updatedUrl.appendToUrl("download"))
+                suspendCatching {
+                    Ksoup.parseGet(downloadLink, client)
+                }.getOrNull()
+            } else {
+                null
             }
-        } else {
-            emptySet()
+        ).ifEmpty { return emptyList() }
+
+        val allResolved = allDocs.flatMap { document ->
+            val hosterSpecific = when {
+                Streamtape.matches(url) -> Streamtape(updatedUrl).directLink(document)
+                Voe.matches(url) || isVoe -> Voe(updatedUrl).directLink(document)
+                MixDrop.matches(url) -> MixDrop(updatedUrl).directLink(document)
+                DoodStream.matches(url) -> DoodStream(updatedUrl).directLink(client, document)
+                else -> emptySet()
+            }
+
+            val documentLinks = directLinksInDoc(document)
+            val iFrameLinks = if (resolveIFrames) {
+                val docUrl = document.location()?.ifBlank { null } ?: updatedUrl
+
+                val iFrameSources = document.getElementsByTag("iframe").flatMap {
+                    it.getSources()
+                }.toSet().map {
+                    normalizeIframeUrl(docUrl, it)
+                }.toSet()
+
+                iFrameSources.flatMap {
+                    loadVideos(
+                        client = client,
+                        url = it,
+                        resolveIFrames = false
+                    )
+                }
+            } else {
+                emptySet()
+            }
+
+            setOf(
+                *hosterSpecific.toTypedArray(),
+                *documentLinks.toTypedArray(),
+                *iFrameLinks.toTypedArray()
+            )
         }
 
-        return setOf(
-            *hosterSpecific.toTypedArray(),
-            *documentLinks.toTypedArray(),
-            *iFrameLinks.toTypedArray()
-        )
+        return allResolved.toSet()
     }
 
     private fun directLinksInDoc(document: Document): Collection<DirectLink> {
@@ -146,5 +157,9 @@ data object Skeo {
             val regex = "^(?:https?://)?(?:[^@\\n]+@)?(?:www\\.)?([^:/\\n?]+)".toRegex(RegexOption.IGNORE_CASE)
             regex.find(url)?.value
         } ?: url
+    }
+
+    private fun String.appendToUrl(path: String): String {
+        return URLBuilder(this).appendPathSegments(path).buildString()
     }
 }
