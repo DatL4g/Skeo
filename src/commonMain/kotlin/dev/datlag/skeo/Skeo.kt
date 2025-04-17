@@ -150,7 +150,7 @@ data object Skeo {
             newUrl.password = null
             newUrl.pathSegments = emptyList()
             newUrl.encodedParameters = ParametersBuilder(0)
-            newUrl.fragment = String()
+            newUrl.fragment = ""
             newUrl.trailingQuery = false
             newUrl.buildString()
         }.getOrNull() ?: run {

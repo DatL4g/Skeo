@@ -3,15 +3,15 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
-    kotlin("multiplatform") version "2.0.21"
-    kotlin("plugin.serialization") version "2.0.21"
-    id("com.vanniktech.maven.publish") version "0.29.0"
+    kotlin("multiplatform") version "2.1.20"
+    kotlin("plugin.serialization") version "2.1.20"
+    id("com.vanniktech.maven.publish") version "0.31.0"
     `maven-publish`
     signing
 }
 
 val libName = "skeo"
-val libVersion = "0.2.3"
+val libVersion = "0.2.4"
 val artifact = "dev.datlag.skeo"
 group = artifact
 version = libVersion
@@ -49,10 +49,10 @@ kotlin {
 
     sourceSets {
         commonMain.dependencies {
-            implementation("com.fleeksoft.ksoup:ksoup:0.2.0")
-            implementation("io.ktor:ktor-client-core:3.0.1")
-            implementation("org.jetbrains.kotlinx:kotlinx-serialization-core:1.7.3")
-            implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.6.1")
+            implementation("com.fleeksoft.ksoup:ksoup:0.2.2")
+            implementation("io.ktor:ktor-client-core:3.1.2")
+            implementation("org.jetbrains.kotlinx:kotlinx-serialization-core:1.8.1")
+            implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.6.2")
         }
     }
 }
