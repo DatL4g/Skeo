@@ -600,3 +600,4 @@ obj/
 !/gradle/wrapper/gradle-wrapper.jar
 
 # End of https://www.toptal.com/developers/gitignore/api/windows,linux,macos,intellij,intellij+iml,intellij+all,android,androidstudio,maven,gradle,java,kotlin,netbeans,visualstudiocode
+/kotlin-js-store/yarn.lock
