@@ -1,6 +1,4 @@
 import com.vanniktech.maven.publish.SonatypeHost
-import org.jetbrains.kotlin.gradle.dsl.JvmTarget
-import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
     kotlin("multiplatform") version "2.1.20"
@@ -11,7 +9,7 @@ plugins {
 }
 
 val libName = "skeo"
-val libVersion = "0.2.4"
+val libVersion = "0.2.5"
 val artifact = "dev.datlag.skeo"
 group = artifact
 version = libVersion
@@ -49,9 +47,10 @@ kotlin {
 
     sourceSets {
         commonMain.dependencies {
-            implementation("com.fleeksoft.ksoup:ksoup:0.2.2")
-            implementation("io.ktor:ktor-client-core:3.1.2")
+            implementation("com.fleeksoft.ksoup:ksoup:0.2.3")
+            implementation("io.ktor:ktor-client-core:3.1.3")
             implementation("org.jetbrains.kotlinx:kotlinx-serialization-core:1.8.1")
+            implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.8.1")
             implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.6.2")
         }
     }
