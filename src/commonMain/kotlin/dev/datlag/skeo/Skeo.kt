@@ -52,10 +52,18 @@ data object Skeo {
         val allResolved = allDocs.flatMap { document ->
             val hosterSpecific = when {
                 Streamtape.matches(url) -> Streamtape(updatedUrl).directLink(document)
-                Voe.matches(url) || isVoe -> Voe(updatedUrl).directLink(document)
+                isVoe || Voe.matches(url) || Voe.matches(document) -> Voe(updatedUrl).directLink(document)
                 MixDrop.matches(url) -> MixDrop(updatedUrl).directLink(document)
                 DoodStream.matches(url) -> DoodStream(updatedUrl).directLink(client, document)
-                else -> emptySet()
+                else -> {
+                    if (document.body().childrenSize() <= 1) {
+                        Hoster.redirectLocation(document)?.let {
+                            loadVideos(client, it, resolveIFrames)
+                        } ?: emptyList()
+                    } else {
+                        emptyList()
+                    }
+                }
             }
 
             val documentLinks = directLinksInDoc(document)

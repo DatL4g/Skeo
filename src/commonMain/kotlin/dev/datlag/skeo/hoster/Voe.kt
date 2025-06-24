@@ -124,9 +124,8 @@ data class Voe(
         } ?: emptySet()
     }
 
-    companion object : Hoster.UrlMatcher, Hoster.UrlUpdater {
+    companion object : Hoster.UrlMatcher, Hoster.UrlUpdater, Hoster.DocumentMatcher {
         private val URL_MATCHER = "(?://|\\.)(voe\\.sx)/(\\w+)".toRegex(RegexOption.IGNORE_CASE)
-        private val LOCATION_MATCHER = "window.location.href\\s*=\\s*['\"](https.*)['\"]".toRegex(RegexOption.IGNORE_CASE)
         private val HLS_MATCHER = "['\"]hls['\"]:\\s*['\"](.*)['\"]".toRegex(setOf(RegexOption.IGNORE_CASE, RegexOption.MULTILINE))
         private val MP4_MATCHER = "['\"]mp4['\"]:\\s*['\"](.*)['\"]".toRegex(setOf(RegexOption.IGNORE_CASE, RegexOption.MULTILINE))
 
@@ -139,13 +138,20 @@ data class Voe(
             return URL_MATCHER.containsMatchIn(url)
         }
 
+        override fun matches(document: Document): Boolean {
+            return document.headOrNull()?.select("meta[name=keywords]")?.mapNotNull { meta ->
+                meta.attr("content").trim().ifBlank { null }
+            }?.any { content ->
+                content.equals("VOE", ignoreCase = true)
+            } ?: false
+        }
+
         override suspend fun updateUrl(client: HttpClient, url: String): String {
             val doc = suspendCatching {
                 Ksoup.parseGet(url, client)
             }.getOrNull() ?: return url
-            val script = doc.getElementsByTag("script").firstOrNull()?.html() ?: return url
 
-            return LOCATION_MATCHER.find(script)?.groupValues?.get(1)?.ifBlank { null } ?: url
+            return Hoster.redirectLocation(doc) ?: url
         }
     }
 }
