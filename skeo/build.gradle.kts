@@ -1,7 +1,17 @@
 plugins {
+    `maven-publish`
     alias(libs.plugins.multiplatform)
+    alias(libs.plugins.publish)
     alias(libs.plugins.serialization)
+    signing
 }
+
+val libName = "skeo"
+val libVersion = "0.3.0"
+val artifact = "dev.datlag.skeo"
+
+group = artifact
+version = libVersion
 
 kotlin {
     jvm()
@@ -49,9 +59,42 @@ kotlin {
             implementation(libs.serialization.json)
             implementation(libs.tooling)
         }
+    }
+}
 
-        jvmMain.dependencies {
-            implementation(libs.ktor.okhttp)
+mavenPublishing {
+    publishToMavenCentral(automaticRelease = true)
+    signAllPublications()
+
+    coordinates(
+        groupId = artifact,
+        artifactId = libName,
+        version = libVersion
+    )
+
+    pom {
+        name.set(libName)
+        description.set("Kotlin multiplatform video source scraper.")
+        url.set("https://github.com/DatL4g/Skeo")
+
+        licenses {
+            license {
+                name.set("Apache License 2.0")
+                url.set("https://www.apache.org/licenses/LICENSE-2.0.txt")
+            }
+        }
+
+        scm {
+            url.set("https://github.com/DatL4g/Skeo")
+            connection.set("scm:git:git://github.com/DatL4g/Skeo.git")
+        }
+
+        developers {
+            developer {
+                id.set("DatL4g")
+                name.set("Jeff Retz (DatLag)")
+                url.set("https://github.com/DatL4g")
+            }
         }
     }
 }
